@@ -75,7 +75,6 @@ function get_stats($language){
 	$langData = &$data[$language];
 
 	$langData['stats']['count'] = 0;
-	$langData['stats']['chapterCount'] = array();
 	$langData['stats']['frameCount'] = array();
 
 	foreach($langData['chapters'] as $chapterIndex=>&$chapter){
@@ -102,19 +101,9 @@ function get_stats($language){
 			$chapter['stats']['count'] += $length;
 			$langData['stats']['count'] += $length;
 		}
-
-		$langData['stats']['chapterCount'][] = $chapter['stats']['count'];
 	}
 
 	// Now get stats
-
-	$arr = $langData['stats']['chapterCount'];
-	sort($arr);
-	$langData['stats']['chapterLow'] = $arr[0];
-	$langData['stats']['chapterMedian'] = calculate_median($arr);
-	$langData['stats']['chapterAverage'] = calculate_average($arr);
-	$langData['stats']['chapterHigh'] = end($arr);
-
 	$arr = $langData['stats']['frameCount'];
 	sort($arr);
 	$langData['stats']['frameLow'] = $arr[0];
@@ -193,48 +182,8 @@ function collate_with_source($language){
 	$frameMedianRatio = calculate_median($sourceTargetRatios);
 	$frameAverageRatio = calculate_average($sourceTargetRatios);
 
-	$sourceTargetRatios = array();
-	foreach($tarData['stats']['chapterCount'] as $index=>$count){
-		if( $count > 0) {
-			$sourceTargetRatio = $count / $srcData['stats']['chapterCount'][$index];
-		}
-		else {
-			$sourceTargetRatio = 0;
-		}
-
-		if(! isset($chapterLowRatio) || $sourceTargetRatio < $chapterLowRatio){
-			$chapterLow = $count;
-			$chapterLowSource = $srcData['stats']['chapterCount'][$index];
-			$chapterLowRatio = $sourceTargetRatio;
-		}
-
-		if(! isset($chapterHighRatio) || $sourceTargetRatio > $chapterHighRatio){
-			$chapterHigh = $count;
-			$chapterHighSource = $srcData['stats']['chapterCount'][$index];
-			$chapterHighRatio = $sourceTargetRatio;
-		}
-
-		$sourceTargetRatios[] = $sourceTargetRatio;
-	}
-	$chapterMedianRatio = calculate_median($sourceTargetRatios);
-	$chapterAverageRatio = calculate_average($sourceTargetRatios);
-
 	$tarData['stats']['countSource'] = $srcData['stats']['count'];
 	$tarData['stats']['countRatio'] = $tarData['stats']['count'] / $srcData['stats']['count'];
-
-	$tarData['stats']['chapterLow'] = $chapterLow;
-	$tarData['stats']['chapterLowSource'] = $chapterLowSource;
-	$tarData['stats']['chapterLowRatio'] = $chapterLowRatio;
-
-	$tarData['stats']['chapterMedianSource'] = $srcData['stats']['chapterMedian'];
-	$tarData['stats']['chapterMedianRatio'] = $chapterMedianRatio;
-
-	$tarData['stats']['chapterAverageSource'] = $srcData['stats']['chapterAverage'];
-	$tarData['stats']['chapterAverageRatio'] = $chapterAverageRatio;
-
-	$tarData['stats']['chapterHigh'] = $chapterHigh;
-	$tarData['stats']['chapterHighSource'] = $chapterHighSource;
-	$tarData['stats']['chapterHighRatio'] = $chapterHighRatio;
 
 	$tarData['stats']['frameLow'] = $frameLow;
 	$tarData['stats']['frameLowSource'] = $frameLowSource;
@@ -349,7 +298,7 @@ function collate_with_source($language){
 
 		.item {
 			float: left;
-			width: 200px;
+			padding-right: 15px;
 		}
 
 		.toggle-container {
@@ -411,43 +360,21 @@ function collate_with_source($language){
 			if($language == $source)
 				continue;
 
-			$lowestRatio = $info['stats']['frameMedianRatio'] - .2;
-			$highestRatio = $info['stats']['frameMedianRatio'] + .2;
+			$ratio = $info['stats']['frameMedianRatio'];
+			$lowestRatio = $ratio - .2;
+			$highestRatio = $ratio + .2;
 			?>
 			<div class="language" id="<?php echo $language?>">
 				<div class="container">
 					<div class="heading">Target: <?php echo $catalog[$language]['string'].' ('.$language.')'?></div>
-					<div class="item clear-left break">Char Count: <?php echo number_format($info['stats']['count'])?></div>
-					<div class="item">Source: <?php echo number_format($info['stats']['countSource'])?></div>
-					<div class="item">% Ratio: <?php echo number_format($info['stats']['countRatio'] * 100, 2)?>%</div>
-					<!--
-					<div class="item clear-left break">Chapter Low: <?php echo number_format($info['stats']['chapterLow'])?></div>
-					<div class="item">Source: <?php echo number_format($info['stats']['chapterLowSource'])?></div>
-					<div class="item">% Ratio: <?php echo number_format($info['stats']['chapterLowRatio'] * 100, 2)?>%</div>
-					<div class="item clear-left">Chapter High: <?php echo number_format($info['stats']['chapterHigh'])?></div>
-					<div class="item">Source: <?php echo number_format($info['stats']['chapterHighSource'])?></div>
-					<div class="item">% Ratio: <?php echo number_format($info['stats']['chapterHighRatio'] * 100, 2)?>%</div>
-					<div class="item clear-left">Chapter Median: <?php echo number_format($info['stats']['chapterMedian'], 2)?></div>
-					<div class="item">Source: <?php echo number_format($info['stats']['chapterMedianSource'], 2)?></div>
-					<div class="item">% Ratio: <?php echo number_format($info['stats']['chapterMedianRatio'] * 100, 2)?>%</div>
-					<div class="item clear-left">Chapter Average: <?php echo number_format($info['stats']['chapterAverage'], 2)?></div>
-					<div class="item">Source: <?php echo number_format($info['stats']['chapterAverageSource'], 2)?></div>
-					<div class="item">% Ratio: <?php echo number_format($info['stats']['chapterAverageRatio'] * 100, 2)?>%</div>
-					-->
-					<div class="item clear-left"><span style="font-weight:bold;">Median Ratio: <?php echo number_format($info['stats']['frameMedianRatio'] * 100, 2)?>%</span></div>
-					<div class="item">Target: <?php echo number_format($info['stats']['frameMedian'])?></div>
-					<div class="item">Source: <?php echo number_format($info['stats']['frameMedianSource'])?></div>
-					<div class="item clear-left<?php echo ($info['stats']['frameLowRatio']<$lowestRatio?' warning':'')?>">Lowest Ratio: <?php echo number_format($info['stats']['frameLowRatio'] * 100, 2)?>%</div>
-					<div class="item<?php echo ($info['stats']['frameLowRatio']<$lowestRatio?' warning':'')?>">Target: <?php echo number_format($info['stats']['frameLow'])?></div>
-					<div class="item<?php echo ($info['stats']['frameLowRatio']<$lowestRatio?' warning':'')?>">Source: <?php echo number_format($info['stats']['frameLowSource'])?></div>
-					<div class="item clear-left<?php echo ($info['stats']['frameHighRatio']>$highestRatio?' warning':'')?>">Highest Ratio: <?php echo number_format($info['stats']['frameHighRatio'] * 100, 2)?>%</div>
-					<div class="item<?php echo ($info['stats']['frameHighRatio']>$highestRatio?' warning':'')?>">Target: <?php echo number_format($info['stats']['frameHigh'])?></div>
-					<div class="item<?php echo ($info['stats']['frameHighRatio']>$highestRatio?' warning':'')?>">Source: <?php echo number_format($info['stats']['frameHighSource'])?></div>
-					<!--
-					<div class="item clear-left">Frame Average: <?php echo number_format($info['stats']['frameAverage'], 2)?></div>
-					<div class="item">Source: <?php echo number_format($info['stats']['frameAverageSource'], 2)?></div>
-					<div class="item">% Ratio: <?php echo number_format($info['stats']['frameAverageRatio'] * 100, 2)?>%</div>
-					-->
+					<div class="item clear-left break">Overall Character Count: <?php echo number_format($info['stats']['count'])?> (Target), <?php echo number_format($info['stats']['countSource'])?> (Source)</div>
+					<div class="item">Ratio: <?php echo sprintf("%.2f",$info['stats']['countRatio'] * 100)?>%</div>
+					<div class="item clear-left"><span style="font-weight:bold;">Median Ratio: <?php echo sprintf("%.2f",$info['stats']['frameMedianRatio'] * 100)?>% (<?php echo number_format($info['stats']['frameMedian'])?>:<?php echo number_format($info['stats']['frameMedianSource'])?>)</span></div>
+					<div class="item clear-left"><span style="font-weight:normal;">Average Ratio: <?php echo sprintf("%+.2f",$info['stats']['frameAverageRatio'] * 100)?>%</span></div>
+					<div class="item clear-left<?php echo ($info['stats']['frameLowRatio']<$lowestRatio?' warning':'')?>">Lowest Ratio: <?php echo sprintf("%.2f",$info['stats']['frameLowRatio'] * 100)?>% (<?php echo number_format($info['stats']['frameLow'])?>:<?php echo number_format($info['stats']['frameLowSource'])?>)</div>
+					<div class="item<?php echo ($info['stats']['frameLowRatio']<$lowestRatio?' warning':'')?>">Variance: <?php echo sprintf("%+.2f",($info['stats']['frameLowRatio'] - $ratio) * 100)?>%</div>
+					<div class="item clear-left<?php echo ($info['stats']['frameHighRatio']>$highestRatio?' warning':'')?>">Highest Ratio: <?php echo sprintf("%.2f",$info['stats']['frameHighRatio'] * 100)?>% (<?php echo number_format($info['stats']['frameHigh'])?>:<?php echo number_format($info['stats']['frameHighSource'])?>)</div>
+					<div class="item<?php echo ($info['stats']['frameHighRatio']>$highestRatio?' warning':'')?>">Variance: <?php echo sprintf("%+.2f",($info['stats']['frameHighRatio'] - $ratio) * 100)?>%</div>
 					<div class="item toggle-container"><a href="#" class="toggle">▼</a></div>
 				</div>
 
@@ -456,25 +383,12 @@ function collate_with_source($language){
 						<div class="chapter" id="<?php echo $language?>-chapter-<?php echo $chapter['number']?>">
 							<div class="container">
 								<div class="heading">Chapter: <?php echo $chapter['title']?></div>
-								<div class="item clear-left">Char Count: <?php echo number_format($chapter['stats']['count'])?></div>
-								<div class="item">Source: <?php echo number_format($chapter['stats']['countSource'])?></div>
-								<div class="item">% Ratio: <?php echo number_format($chapter['stats']['countRatio'] * 100, 2)?>%</div>
-								<!--
-								<div class="item clear-left">Median Ratio: <?php echo number_format($chapter['stats']['frameMedianRatio'] * 100, 2)?>%</div>
-								<div class="item">Target: <?php echo number_format($chapter['stats']['frameMedian'])?></div>
-								<div class="item">Source: <?php echo number_Format($chapter['stats']['frameMedianSource'])?></div>
-								-->
-								<div class="item clear-left<?php echo ($chapter['stats']['frameLowRatio']<$lowestRatio?' warning':'')?>">Lowest Ratio: <?php echo number_format($chapter['stats']['frameLowRatio'] * 100, 2)?>%</div>
-								<div class="item<?php echo ($chapter['stats']['frameLowRatio']<$lowestRatio?' warning':'')?>">Target: <?php echo number_format($chapter['stats']['frameLow'])?></div>
-								<div class="item<?php echo ($chapter['stats']['frameLowRatio']<$lowestRatio?' warning':'')?>">Source: <?php echo number_format($chapter['stats']['frameLowSource'])?></div>
-								<div class="item clear-left<?php echo ($chapter['stats']['frameHighRatio']>$highestRatio?' warning':'')?>">Highest Ratio: <?php echo number_format($chapter['stats']['frameHighRatio'] * 100, 2)?>%</div>
-								<div class="item<?php echo ($chapter['stats']['frameHighRatio']>$highestRatio?' warning':'')?>">Target: <?php echo number_format($chapter['stats']['frameHigh'])?></div>
-								<div class="item<?php echo ($chapter['stats']['frameHighRatio']>$highestRatio?' warning':'')?>">Source: <?php echo number_format($chapter['stats']['frameHighSource'])?></div>
-								<!--
-								<div class="item clear-left">Frame Average: <?php echo number_format($chapter['stats']['frameAverage'], 2)?></div>
-								<div class="item">Source: <?php echo number_format($chapter['stats']['frameAverageSource'], 2)?></div>
-								<div class="item">% Ratio: <?php echo number_format($chapter['stats']['frameAverageRatio'] * 100, 2)?>%</div>
-								-->
+								<div class="item clear-left break">Chapter Character Count: <?php echo number_format($chapter['stats']['count'])?> (Target), <?php echo number_format($chapter['stats']['countSource'])?> (Source)</div>
+								<div class="item">Ratio: <?php echo sprintf("%.2f",$chapter['stats']['countRatio'] * 100)?>%</div>
+								<div class="item clear-left<?php echo ($chapter['stats']['frameLowRatio']<$lowestRatio?' warning':'')?>">Lowest Ratio: <?php echo sprintf("%.2f",$chapter['stats']['frameLowRatio'] * 100)?>% (<?php echo number_format($chapter['stats']['frameLow'])?>:<?php echo number_format($chapter['stats']['frameLowSource'])?>)</div>
+								<div class="item<?php echo ($chapter['stats']['frameLowRatio']<$lowestRatio?' warning':'')?>">Variance: <?php echo sprintf("%+.2f",($chapter['stats']['frameLowRatio'] - $ratio) * 100)?>%</div>
+								<div class="item clear-left<?php echo ($chapter['stats']['frameHighRatio']>$highestRatio?' warning':'')?>">Highest Ratio: <?php echo sprintf("%.2f",$chapter['stats']['frameHighRatio'] * 100)?>% (<?php echo number_format($chapter['stats']['frameHigh'])?>:<?php echo number_format($chapter['stats']['frameHighSource'])?>)</div>
+								<div class="item<?php echo ($chapter['stats']['frameHighRatio']>$highestRatio?' warning':'')?>">Variance: <?php echo sprintf("%+.2f",($chapter['stats']['frameHighRatio'] - $ratio) * 100)?>%</div>
 								<div class="item toggle-container"><a href="#" class="toggle">▼</a></div>
 							</div>
 
@@ -483,9 +397,8 @@ function collate_with_source($language){
 									<div class="frame" id="<?php echo $language?>-frame-<?php echo $frame['id']?>">
 										<div class="container<?php echo ($frame['stats']['countRatio']<$lowestRatio||$frame['stats']['countRatio']>$highestRatio?' warning':'')?>">
 											<div class="heading">Frame: <?php echo $frame['id']?></div>
-											<div class="item clear-left">Char Count: <?php echo number_format($frame['stats']['count'])?></div>
-											<div class="item">Source: <?php echo number_format($frame['stats']['countSource'])?></div>
-											<div class="item">% Ratio: <?php echo number_format($frame['stats']['countRatio'] * 100, 2)?>%</div>
+											<div class="item clear-left">Ratio: <?php echo sprintf("%.2f",$frame['stats']['countRatio'] * 100)?>% (<?php echo number_format($frame['stats']['count'])?>:<?php echo number_format($frame['stats']['countSource'])?>)</div>
+											<div class="item">Variance: <?php echo sprintf("%+.2f",($frame['stats']['countRatio'] - $ratio) * 100)?>%</div>
 											<div class="item toggle-container"><a href="#" class="toggle">▼</a></div>
 										</div>
 
@@ -516,7 +429,7 @@ function collate_with_source($language){
 	<div class="heading">Summary:</div>
 	<p>
 		This tool uses the json files located at <a href="https://api.unfoldingword.org/obs/txt/1/">https://api.unfoldingword.org/obs/txt/1/</a>
-		to determine if the text of a frame of a given target language falls within plus or minus 20% of the normal percentage ratio between the two languages.
+		to determine if the text of a frame of a given target language falls within ±20% of the normal percentage ratio between the two languages.
 	</p>
 	<div class="heading">Description:</div>
 	<p>
@@ -524,19 +437,23 @@ function collate_with_source($language){
 		the source language (usually English). This goes by the understanding that the text of most languages will normally longer or shorter than a sentence or paragraph in English.
 	</p>
 	<p>
-		For example, in Chinese, something can be written in way fewer characters than English. "上帝祝福你。" is "God bless you." in Chinese, the Chinese being 6 characters,
-		the English being 14 characters, a ratio of 6:14, or a percentage ratio of 42.85%. (if you have it ignore punctuation and spaces, it is 5:11 or 45%). On the other hand,
-		French sentences are usually longer than a sentence with the same meaning in English, about a 110% percent ratio.
+		For example, in Chinese, something can be written in way fewer characters than English. "今天我要去超市买电脑。" is "Today I will go to the store to buy a computer.",
+		the Chinese being 11 characters, the English being 47 characters, a ratio of 11:47, or a percentage ratio of 23.4%. (if you have it ignore punctuation and spaces,
+		it is 10:36 or 27.77%). On the other hand, French sentences are usually longer than a sentence with the same meaning in English, having a little more than a 110%
+		percent ratio.
 	</p>
 	<p>
-		Once a source and target language is chosen, this tool will gather all the frames of both the source and target language, get the percentage ratio of each and then
-		select the percentage ratio that is the median of all frames. This is then used to determine the variance of a given frame is more or less than 20% of the target languages
-		ratio with the source language.
+		Once a source and target language is chosen, this tool will gather all the frames of both the source and target language, get the percentage ratio of each target frame
+		with its corresponding source frame (target length / source length), and then from all those target/source ratios, select the percentage ratio that is the median.
+		This is then used to determine the variance of a given frame is more or less than 20% of the target languages ratio with the source language.
 	</p>
-	<div class="heading">Issues:</div>
+	<div class="heading">Notes/Concerns:</div>
 	<ul>
-		<li>Is selecting the median from the pool of all frame target-source ratios the best way to get the normal ratio of a language?</li>
-		<li>Is ±20% the best variance to use to say if a text's translation should be re-evaluated? Should this be different for text that is short, or text that is long?</li>
+		<li><b>Median, average, or...?</b> Is selecting the median from the pool of all frame target-source ratios the best way to get the normal ratio of a language?</li>
+		<li><b>Longer vs. shorter text?</b> Is the ratio different when the source text is short (a short sentence) compared to when there is a lot of text (4-5 sentences?)</li>
+		<li><b>Variance - what range?</b> Is ±20% the best variance to use to say if a text's translation should be re-evaluated? Should this be different for text that is short, or text that is long?</li>
+		<li><b>Spaces and Punctuation?</b> Is it more reliable to ignore spaces and or punctuation for both source and target? Or better to keep them in? Or based on target language?
+			Chinese has no spaces, and German often has very long phrases or words without spaces where English has spaces (e.g. Freundschaftsbezeigungen = demonstrations of friendship).</li>
 	</ul>
 </div>
 
