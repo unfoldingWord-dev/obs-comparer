@@ -264,9 +264,16 @@ function collate_with_source($language){
 <head>
 	<title>Language Comparison & Breakdown</title>
 	<meta charset='utf-8'>
-	<script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
+	<script src="http://code.jquery.com/jquery-2.1.3.min.js"></script>
+
+	<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
 
 	<style type="text/css">
+		a {
+			color: #428bca;
+			text-decoration: none;
+		}
+
 		div {
 			overflow: auto;
 		}
@@ -365,6 +372,13 @@ function collate_with_source($language){
 <body>
 
 <h3>Language Comparison & Breakdown</h3>
+
+<?php if($target == "am" || $target == "ALL" && $translateWarnings):?>
+<div class="warning">
+	Google translate does not translate አማርኛ (am). Sorry. <?php if($target == "ALL"):?>Other languages will be translated.<?php endif;?>
+</div>
+<?php endif; ?>
+
 <form method="get">
 	Source:
 	<select id="source-language" name="s">
@@ -391,7 +405,7 @@ function collate_with_source($language){
 
 	<br/>
 
-	<input type="checkbox" name="translate" value="1"<?php echo ($translateWarnings?' checked="checked"':'')?>> Use Google Translate (only on high variations, takes time!)
+	<input type="checkbox" name="translate" value="1"<?php echo ($translateWarnings?' checked="checked"':'')?>> Use Google Translate (only on large variations, takes time!)
 </form>
 
 <?php if(! empty($data) && $target && $source):
@@ -402,17 +416,17 @@ function collate_with_source($language){
 			if($language == $source)
 				continue;
 
-			
+
 			$ratio = $info['stats']['frameMedianRatio'];
 			$lowestRatio = $ratio - .2;
 			$highestRatio = $ratio + .2;
 			?>
 			<div class="language" id="<?php echo $language?>">
 				<div class="container">
-					<div class="heading">Target: <?php echo $catalog[$language]['string'].' ('.$language.')'?> <span style="padding-left:30px"><a href="https://door43.org/<?php echo $target?>/obs/" style="text-decoration:none;color:darkslategray;" target="_blank"><img src="images/external_link.png" height="12"></a></span></div>
+					<div class="heading">Target: <?php echo $catalog[$language]['string'].' ('.$language.')'?> <a href="https://door43.org/<?php echo $target?>/obs/" style="text-decoration:none;font-size:.8em;font-weight:normal;" target="_blank"><i class="fa fa-external-link"></i></a></span></div>
 					<div class="item clear-left break">Overall Character Count: <?php echo number_format($info['stats']['count'])?> (Target), <?php echo number_format($info['stats']['countSource'])?> (Source)</div>
 					<div class="item">Ratio: <?php echo sprintf("%.2f",$info['stats']['countRatio'] * 100)?>%</div>
-					<div class="item clear-left"><span style="font-weight:bold;">Median Ratio: <?php echo sprintf("%.2f",$info['stats']['frameMedianRatio'] * 100)?>% (<?php echo number_format($info['stats']['frameMedian'])?>:<?php echo number_format($info['stats']['frameMedianSource'])?>)</span></div>
+					<div class="item clear-left"><span style="font-weight:bold;">Median Ratio: <?php echo sprintf("%.2f",$info['stats']['frameMedianRatio'] * 100)?>% <--- This ratio will be used to find frames with a variance > 20%</span></div>
 					<div class="item clear-left"><span style="font-weight:normal;">Average Ratio: <?php echo sprintf("%.2f",$info['stats']['frameAverageRatio'] * 100)?>%</span></div>
 					<div class="item clear-left<?php echo ($info['stats']['frameLowRatio']<$lowestRatio?' warning':'')?>">Lowest Ratio: <?php echo sprintf("%.2f",$info['stats']['frameLowRatio'] * 100)?>% (<?php echo number_format($info['stats']['frameLow'])?>:<?php echo number_format($info['stats']['frameLowSource'])?>)</div>
 					<div class="item<?php echo ($info['stats']['frameLowRatio']<$lowestRatio?' warning':'')?>">Variance: <?php echo sprintf("%+.2f",($info['stats']['frameLowRatio'] - $ratio) * 100)?>%</div>
@@ -425,7 +439,7 @@ function collate_with_source($language){
 					<?php foreach($info['chapters'] as $chapterIndex=>$chapter):?>
 						<div class="chapter" id="<?php echo $language?>-chapter-<?php echo $chapter['number']?>">
 							<div class="container">
-								<div class="heading">Chapter: <?php echo $chapter['title']?> <span style="padding-left:30px"><a href="https://door43.org/<?php echo $target?>/obs/<?php echo $chapter['number']?>" style="text-decoration:none;color:darkslategray;" target="_blank"><img src="images/external_link.png" height="12"></a></span></div>
+								<div class="heading">Chapter: <?php echo $chapter['title']?> <a href="https://door43.org/<?php echo $target?>/obs/<?php echo $chapter['number']?>" style="text-decoration:none;font-size:.8em;font-weight:normal;" target="_blank"><i class="fa fa-external-link"></i></a></div>
 								<div class="item clear-left break">Chapter Character Count: <?php echo number_format($chapter['stats']['count'])?> (Target), <?php echo number_format($chapter['stats']['countSource'])?> (Source)</div>
 								<div class="item">Ratio: <?php echo sprintf("%.2f",$chapter['stats']['countRatio'] * 100)?>%</div>
 								<div class="item clear-left<?php echo ($chapter['stats']['frameLowRatio']<$lowestRatio?' warning':'')?>">Lowest Ratio: <?php echo sprintf("%.2f",$chapter['stats']['frameLowRatio'] * 100)?>% (<?php echo number_format($chapter['stats']['frameLow'])?>:<?php echo number_format($chapter['stats']['frameLowSource'])?>)</div>
@@ -439,7 +453,7 @@ function collate_with_source($language){
 								<?php foreach($chapter['frames'] as $frameIndex=>$frame):?>
 									<div class="frame" id="<?php echo $language?>-frame-<?php echo $frame['id']?>">
 										<div class="container<?php echo ($frame['stats']['countRatio']<$lowestRatio||$frame['stats']['countRatio']>$highestRatio?' warning':'')?>">
-											<div class="heading">Frame: <?php echo $frame['id']?> <span style="padding-left:30px"><a href="https://door43.org/<?php echo $target?>/obs/<?php echo $chapter['number']?>" style="text-decoration:none;color:darkslategray;" target="_blank"><img src="images/external_link.png" height="12"></a></span></div>
+											<div class="heading">Frame: <?php echo $frame['id']?> <a href="https://door43.org/<?php echo $target?>/obs/<?php echo $chapter['number']?>" style="text-decoration:none;font-size:.8em;font-weight:normal;" target="_blank"><i class="fa fa-external-link"></i></a></div>
 											<div class="item clear-left">Ratio: <?php echo sprintf("%.2f",$frame['stats']['countRatio'] * 100)?>% (<?php echo number_format($frame['stats']['count'])?>:<?php echo number_format($frame['stats']['countSource'])?>)</div>
 											<div class="item">Variance: <?php echo sprintf("%+.2f",($frame['stats']['countRatio'] - $ratio) * 100)?>%</div>
 											<div class="item toggle-container"><a href="#" class="toggle">▼</a></div>
@@ -455,7 +469,7 @@ function collate_with_source($language){
 												<?php echo $language?>:<br/>
 											<pre><?php echo $frame['text']?></pre>
 											</p>
-											<?php if($translateWarnings && ($frame['stats']['countRatio']<$lowestRatio || $frame['stats']['countRatio']>$highestRatio)):?>
+											<?php if($translateWarnings && $language != 'am' && ($frame['stats']['countRatio']<$lowestRatio || $frame['stats']['countRatio']>$highestRatio)):?>
 											<p>
 												Google Translate:<br/>
 											<pre><?php echo $tr->translate($frame['text']);?></pre>
