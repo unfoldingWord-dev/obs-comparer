@@ -163,144 +163,144 @@ function collate_with_source($language){
 	$srcData = $data[$source];
 	$tarData = &$data[$language];
 
-	unset($frameLowVar);
-	unset($frameHighVar);
-	unset($chapterLowVar);
-	unset($chapterHighVar);
-	$sourceTargetVariances = array();
+	unset($frameLowRatio);
+	unset($frameHighRatio);
+	unset($chapterLowRatio);
+	unset($chapterHighRatio);
+	$sourceTargetRatios = array();
 	foreach($tarData['stats']['frameCount'] as $index=>$count){
 		if( isset($srcData['stats']['frameCount'][$index]) && $srcData['stats']['frameCount'][$index] > 0) {
-			$sourceTargetVariance = $count / $srcData['stats']['frameCount'][$index];
+			$sourceTargetRatio = $count / $srcData['stats']['frameCount'][$index];
 		}
 		else {
-			$sourceTargetVariance = 0;
+			$sourceTargetRatio = 0;
 		}
 
-		if(! isset($frameLowVar) || $sourceTargetVariance < $frameLowVar){
+		if(! isset($frameLowRatio) || $sourceTargetRatio < $frameLowRatio){
 			$frameLow = $count;
 			$frameLowSource = $srcData['stats']['frameCount'][$index];
-			$frameLowVar = $sourceTargetVariance;
+			$frameLowRatio = $sourceTargetRatio;
 		}
 
-		if(! isset($frameHighVar) || $sourceTargetVariance > $frameHighVar){
+		if(! isset($frameHighRatio) || $sourceTargetRatio > $frameHighRatio){
 			$frameHigh = $count;
 			$frameHighSource = $srcData['stats']['frameCount'][$index];
-			$frameHighVar = $sourceTargetVariance;
+			$frameHighRatio = $sourceTargetRatio;
 		}
 
-		$sourceTargetVariances[] = $sourceTargetVariance;
+		$sourceTargetRatios[] = $sourceTargetRatio;
 	}
-	$frameMedianVar = calculate_median($sourceTargetVariances);
-	$frameAverageVar = calculate_average($sourceTargetVariances);
+	$frameMedianRatio = calculate_median($sourceTargetRatios);
+	$frameAverageRatio = calculate_average($sourceTargetRatios);
 
-	$sourceTargetVariances = array();
+	$sourceTargetRatios = array();
 	foreach($tarData['stats']['chapterCount'] as $index=>$count){
 		if( $count > 0) {
-			$sourceTargetVariance = $count / $srcData['stats']['chapterCount'][$index];
+			$sourceTargetRatio = $count / $srcData['stats']['chapterCount'][$index];
 		}
 		else {
-			$sourceTargetVariance = 0;
+			$sourceTargetRatio = 0;
 		}
 
-		if(! isset($chapterLowVar) || $sourceTargetVariance < $chapterLowVar){
+		if(! isset($chapterLowRatio) || $sourceTargetRatio < $chapterLowRatio){
 			$chapterLow = $count;
 			$chapterLowSource = $srcData['stats']['chapterCount'][$index];
-			$chapterLowVar = $sourceTargetVariance;
+			$chapterLowRatio = $sourceTargetRatio;
 		}
 
-		if(! isset($chapterHighVar) || $sourceTargetVariance > $chapterHighVar){
+		if(! isset($chapterHighRatio) || $sourceTargetRatio > $chapterHighRatio){
 			$chapterHigh = $count;
 			$chapterHighSource = $srcData['stats']['chapterCount'][$index];
-			$chapterHighVar = $sourceTargetVariance;
+			$chapterHighRatio = $sourceTargetRatio;
 		}
 
-		$sourceTargetVariances[] = $sourceTargetVariance;
+		$sourceTargetRatios[] = $sourceTargetRatio;
 	}
-	$chapterMedianVar = calculate_median($sourceTargetVariances);
-	$chapterAverageVar = calculate_average($sourceTargetVariances);
+	$chapterMedianRatio = calculate_median($sourceTargetRatios);
+	$chapterAverageRatio = calculate_average($sourceTargetRatios);
 
 	$tarData['stats']['countSource'] = $srcData['stats']['count'];
-	$tarData['stats']['countVar'] = $tarData['stats']['count'] / $srcData['stats']['count'];
+	$tarData['stats']['countRatio'] = $tarData['stats']['count'] / $srcData['stats']['count'];
 
 	$tarData['stats']['chapterLow'] = $chapterLow;
 	$tarData['stats']['chapterLowSource'] = $chapterLowSource;
-	$tarData['stats']['chapterLowVar'] = $chapterLowVar;
+	$tarData['stats']['chapterLowRatio'] = $chapterLowRatio;
 
 	$tarData['stats']['chapterMedianSource'] = $srcData['stats']['chapterMedian'];
-	$tarData['stats']['chapterMedianVar'] = $chapterMedianVar;
+	$tarData['stats']['chapterMedianRatio'] = $chapterMedianRatio;
 
 	$tarData['stats']['chapterAverageSource'] = $srcData['stats']['chapterAverage'];
-	$tarData['stats']['chapterAverageVar'] = $chapterAverageVar;
+	$tarData['stats']['chapterAverageRatio'] = $chapterAverageRatio;
 
 	$tarData['stats']['chapterHigh'] = $chapterHigh;
 	$tarData['stats']['chapterHighSource'] = $chapterHighSource;
-	$tarData['stats']['chapterHighVar'] = $chapterHighVar;
+	$tarData['stats']['chapterHighRatio'] = $chapterHighRatio;
 
 	$tarData['stats']['frameLow'] = $frameLow;
 	$tarData['stats']['frameLowSource'] = $frameLowSource;
-	$tarData['stats']['frameLowVar'] = $frameLowVar;
+	$tarData['stats']['frameLowRatio'] = $frameLowRatio;
 
 	$tarData['stats']['frameMedianSource'] = $srcData['stats']['frameMedian'];
-	$tarData['stats']['frameMedianVar'] = $frameMedianVar;
+	$tarData['stats']['frameMedianRatio'] = $frameMedianRatio;
 
 	$tarData['stats']['frameAverageSource'] = $srcData['stats']['frameAverage'];
-	$tarData['stats']['frameAverageVar'] = $frameAverageVar;
+	$tarData['stats']['frameAverageRatio'] = $frameAverageRatio;
 
 	$tarData['stats']['frameHigh'] = $frameHigh;
 	$tarData['stats']['frameHighSource'] = $frameHighSource;
-	$tarData['stats']['frameHighVar'] = $frameHighVar;
+	$tarData['stats']['frameHighRatio'] = $frameHighRatio;
 
-	$median = $tarData['stats']['frameMedianVar'];
+	$median = $tarData['stats']['frameMedianRatio'];
 
 	foreach($tarData['chapters'] as $chapterIndex=>&$chapter){
-		unset($frameLowVar);
-		unset($frameHighVar);
-		$sourceTargetVariances = array();
+		unset($frameLowRatio);
+		unset($frameHighRatio);
+		$sourceTargetRatios = array();
 		foreach($chapter['stats']['frameCount'] as $index=>$count){
 			if( isset($srcData['chapters'][$chapterIndex]['stats']['frameCount'][$index]) && $srcData['chapters'][$chapterIndex]['stats']['frameCount'][$index] > 0) {
-				$sourceTargetVariance = $count / $srcData['chapters'][$chapterIndex]['stats']['frameCount'][$index];
+				$sourceTargetRatio = $count / $srcData['chapters'][$chapterIndex]['stats']['frameCount'][$index];
 			}
 			else {
-				$sourceTargetVariance = 0;
+				$sourceTargetRatio = 0;
 			}
 
-			if(! isset($frameLowVar) || $sourceTargetVariance < $frameLowVar){
+			if(! isset($frameLowRatio) || $sourceTargetRatio < $frameLowRatio){
 				$frameLow = $count;
 				$frameLowSource = $srcData['chapters'][$chapterIndex]['stats']['frameCount'][$index];
-				$frameLowVar = $sourceTargetVariance;
+				$frameLowRatio = $sourceTargetRatio;
 			}
 
-			if(! isset($frameHighVar) || $sourceTargetVariance > $frameHighVar){
+			if(! isset($frameHighRatio) || $sourceTargetRatio > $frameHighRatio){
 				$frameHigh = $count;
 				$frameHighSource = $srcData['chapters'][$chapterIndex]['stats']['frameCount'][$index];
-				$frameHighVar = $sourceTargetVariance;
+				$frameHighRatio = $sourceTargetRatio;
 			}
 
-			$sourceTargetVariances[] = $sourceTargetVariance;
+			$sourceTargetRatios[] = $sourceTargetRatio;
 		}
-		$frameMedianVar = calculate_median($sourceTargetVariances);
-		$frameAverageVar = calculate_average($sourceTargetVariances);
+		$frameMedianRatio = calculate_median($sourceTargetRatios);
+		$frameAverageRatio = calculate_average($sourceTargetRatios);
 
 		$chapter['stats']['countSource'] = $srcData['chapters'][$chapterIndex]['stats']['count'];
-		$chapter['stats']['countVar'] = $chapter['stats']['count'] / $srcData['chapters'][$chapterIndex]['stats']['count'];
+		$chapter['stats']['countRatio'] = $chapter['stats']['count'] / $srcData['chapters'][$chapterIndex]['stats']['count'];
 
 		$chapter['stats']['frameLow'] = $frameLow;
 		$chapter['stats']['frameLowSource'] = $frameLowSource;
-		$chapter['stats']['frameLowVar'] = $frameLowVar;
+		$chapter['stats']['frameLowRatio'] = $frameLowRatio;
 
 		$chapter['stats']['frameMedianSource'] = $srcData['chapters'][$chapterIndex]['stats']['frameMedian'];
-		$chapter['stats']['frameMedianVar'] = $frameMedianVar;
+		$chapter['stats']['frameMedianRatio'] = $frameMedianRatio;
 
 		$chapter['stats']['frameAverageSource'] = $srcData['chapters'][$chapterIndex]['stats']['frameAverage'];
-		$chapter['stats']['frameAverageVar'] = $frameAverageVar;
+		$chapter['stats']['frameAverageRatio'] = $frameAverageRatio;
 
 		$chapter['stats']['frameHigh'] = $frameHigh;
 		$chapter['stats']['frameHighSource'] = $frameHighSource;
-		$chapter['stats']['frameHighVar'] = $frameHighVar;
+		$chapter['stats']['frameHighRatio'] = $frameHighRatio;
 
 		foreach($chapter['frames'] as $frameIndex=>&$frame){
 			$frame['stats']['countSource'] = $srcData['chapters'][$chapterIndex]['frames'][$frameIndex]['stats']['count'];
-			$frame['stats']['countVar'] = $frame['stats']['count'] / $srcData['chapters'][$chapterIndex]['frames'][$frameIndex]['stats']['count'];
+			$frame['stats']['countRatio'] = $frame['stats']['count'] / $srcData['chapters'][$chapterIndex]['frames'][$frameIndex]['stats']['count'];
 		}
 	}
 }
@@ -411,42 +411,42 @@ function collate_with_source($language){
 			if($language == $source)
 				continue;
 
-			$lowestVar = $info['stats']['frameMedianVar'] - .2;
-			$highestVar = $info['stats']['frameMedianVar'] + .2;
+			$lowestRatio = $info['stats']['frameMedianRatio'] - .2;
+			$highestRatio = $info['stats']['frameMedianRatio'] + .2;
 			?>
 			<div class="language" id="<?php echo $language?>">
 				<div class="container">
 					<div class="heading">Target: <?php echo $catalog[$language]['string'].' ('.$language.')'?></div>
 					<div class="item clear-left break">Char Count: <?php echo number_format($info['stats']['count'])?></div>
 					<div class="item">Source: <?php echo number_format($info['stats']['countSource'])?></div>
-					<div class="item">Variance: <?php echo number_format($info['stats']['countVar'] * 100, 2)?>%</div>
+					<div class="item">% Ratio: <?php echo number_format($info['stats']['countRatio'] * 100, 2)?>%</div>
 					<!--
 					<div class="item clear-left break">Chapter Low: <?php echo number_format($info['stats']['chapterLow'])?></div>
 					<div class="item">Source: <?php echo number_format($info['stats']['chapterLowSource'])?></div>
-					<div class="item">Variance: <?php echo number_format($info['stats']['chapterLowVar'] * 100, 2)?>%</div>
+					<div class="item">% Ratio: <?php echo number_format($info['stats']['chapterLowRatio'] * 100, 2)?>%</div>
 					<div class="item clear-left">Chapter High: <?php echo number_format($info['stats']['chapterHigh'])?></div>
 					<div class="item">Source: <?php echo number_format($info['stats']['chapterHighSource'])?></div>
-					<div class="item">Variance: <?php echo number_format($info['stats']['chapterHighVar'] * 100, 2)?>%</div>
+					<div class="item">% Ratio: <?php echo number_format($info['stats']['chapterHighRatio'] * 100, 2)?>%</div>
 					<div class="item clear-left">Chapter Median: <?php echo number_format($info['stats']['chapterMedian'], 2)?></div>
 					<div class="item">Source: <?php echo number_format($info['stats']['chapterMedianSource'], 2)?></div>
-					<div class="item">Variance: <?php echo number_format($info['stats']['chapterMedianVar'] * 100, 2)?>%</div>
+					<div class="item">% Ratio: <?php echo number_format($info['stats']['chapterMedianRatio'] * 100, 2)?>%</div>
 					<div class="item clear-left">Chapter Average: <?php echo number_format($info['stats']['chapterAverage'], 2)?></div>
 					<div class="item">Source: <?php echo number_format($info['stats']['chapterAverageSource'], 2)?></div>
-					<div class="item">Variance: <?php echo number_format($info['stats']['chapterAverageVar'] * 100, 2)?>%</div>
+					<div class="item">% Ratio: <?php echo number_format($info['stats']['chapterAverageRatio'] * 100, 2)?>%</div>
 					-->
-					<div class="item clear-left"><span style="font-weight:bold;">Median Variance: <?php echo number_format($info['stats']['frameMedianVar'] * 100, 2)?>%</span></div>
+					<div class="item clear-left"><span style="font-weight:bold;">Median Ratio: <?php echo number_format($info['stats']['frameMedianRatio'] * 100, 2)?>%</span></div>
 					<div class="item">Target: <?php echo number_format($info['stats']['frameMedian'])?></div>
 					<div class="item">Source: <?php echo number_format($info['stats']['frameMedianSource'])?></div>
-					<div class="item clear-left<?php echo ($info['stats']['frameLowVar']<$lowestVar?' warning':'')?>">Lowest Variance: <?php echo number_format($info['stats']['frameLowVar'] * 100, 2)?>%</div>
-					<div class="item<?php echo ($info['stats']['frameLowVar']<$lowestVar?' warning':'')?>">Target: <?php echo number_format($info['stats']['frameLow'])?></div>
-					<div class="item<?php echo ($info['stats']['frameLowVar']<$lowestVar?' warning':'')?>">Source: <?php echo number_format($info['stats']['frameLowSource'])?></div>
-					<div class="item clear-left<?php echo ($info['stats']['frameHighVar']>$highestVar?' warning':'')?>">Highest Variance: <?php echo number_format($info['stats']['frameHighVar'] * 100, 2)?>%</div>
-					<div class="item<?php echo ($info['stats']['frameHighVar']>$highestVar?' warning':'')?>">Target: <?php echo number_format($info['stats']['frameHigh'])?></div>
-					<div class="item<?php echo ($info['stats']['frameHighVar']>$highestVar?' warning':'')?>">Source: <?php echo number_format($info['stats']['frameHighSource'])?></div>
+					<div class="item clear-left<?php echo ($info['stats']['frameLowRatio']<$lowestRatio?' warning':'')?>">Lowest Ratio: <?php echo number_format($info['stats']['frameLowRatio'] * 100, 2)?>%</div>
+					<div class="item<?php echo ($info['stats']['frameLowRatio']<$lowestRatio?' warning':'')?>">Target: <?php echo number_format($info['stats']['frameLow'])?></div>
+					<div class="item<?php echo ($info['stats']['frameLowRatio']<$lowestRatio?' warning':'')?>">Source: <?php echo number_format($info['stats']['frameLowSource'])?></div>
+					<div class="item clear-left<?php echo ($info['stats']['frameHighRatio']>$highestRatio?' warning':'')?>">Highest Ratio: <?php echo number_format($info['stats']['frameHighRatio'] * 100, 2)?>%</div>
+					<div class="item<?php echo ($info['stats']['frameHighRatio']>$highestRatio?' warning':'')?>">Target: <?php echo number_format($info['stats']['frameHigh'])?></div>
+					<div class="item<?php echo ($info['stats']['frameHighRatio']>$highestRatio?' warning':'')?>">Source: <?php echo number_format($info['stats']['frameHighSource'])?></div>
 					<!--
 					<div class="item clear-left">Frame Average: <?php echo number_format($info['stats']['frameAverage'], 2)?></div>
 					<div class="item">Source: <?php echo number_format($info['stats']['frameAverageSource'], 2)?></div>
-					<div class="item">Variance: <?php echo number_format($info['stats']['frameAverageVar'] * 100, 2)?>%</div>
+					<div class="item">% Ratio: <?php echo number_format($info['stats']['frameAverageRatio'] * 100, 2)?>%</div>
 					-->
 					<div class="item toggle-container"><a href="#" class="toggle">▼</a></div>
 				</div>
@@ -458,22 +458,22 @@ function collate_with_source($language){
 								<div class="heading">Chapter: <?php echo $chapter['title']?></div>
 								<div class="item clear-left">Char Count: <?php echo number_format($chapter['stats']['count'])?></div>
 								<div class="item">Source: <?php echo number_format($chapter['stats']['countSource'])?></div>
-								<div class="item">Variance: <?php echo number_format($chapter['stats']['countVar'] * 100, 2)?>%</div>
+								<div class="item">% Ratio: <?php echo number_format($chapter['stats']['countRatio'] * 100, 2)?>%</div>
 								<!--
-								<div class="item clear-left">Median Variance: <?php echo number_format($chapter['stats']['frameMedianVar'] * 100, 2)?>%</div>
+								<div class="item clear-left">Median Ratio: <?php echo number_format($chapter['stats']['frameMedianRatio'] * 100, 2)?>%</div>
 								<div class="item">Target: <?php echo number_format($chapter['stats']['frameMedian'])?></div>
 								<div class="item">Source: <?php echo number_Format($chapter['stats']['frameMedianSource'])?></div>
 								-->
-								<div class="item clear-left<?php echo ($chapter['stats']['frameLowVar']<$lowestVar?' warning':'')?>">Lowest Variance: <?php echo number_format($chapter['stats']['frameLowVar'] * 100, 2)?>%</div>
-								<div class="item<?php echo ($chapter['stats']['frameLowVar']<$lowestVar?' warning':'')?>">Target: <?php echo number_format($chapter['stats']['frameLow'])?></div>
-								<div class="item<?php echo ($chapter['stats']['frameLowVar']<$lowestVar?' warning':'')?>">Source: <?php echo number_format($chapter['stats']['frameLowSource'])?></div>
-								<div class="item clear-left<?php echo ($chapter['stats']['frameHighVar']>$highestVar?' warning':'')?>">Highest Variance: <?php echo number_format($chapter['stats']['frameHighVar'] * 100, 2)?>%</div>
-								<div class="item<?php echo ($chapter['stats']['frameHighVar']>$highestVar?' warning':'')?>">Target: <?php echo number_format($chapter['stats']['frameHigh'])?></div>
-								<div class="item<?php echo ($chapter['stats']['frameHighVar']>$highestVar?' warning':'')?>">Source: <?php echo number_format($chapter['stats']['frameHighSource'])?></div>
+								<div class="item clear-left<?php echo ($chapter['stats']['frameLowRatio']<$lowestRatio?' warning':'')?>">Lowest Ratio: <?php echo number_format($chapter['stats']['frameLowRatio'] * 100, 2)?>%</div>
+								<div class="item<?php echo ($chapter['stats']['frameLowRatio']<$lowestRatio?' warning':'')?>">Target: <?php echo number_format($chapter['stats']['frameLow'])?></div>
+								<div class="item<?php echo ($chapter['stats']['frameLowRatio']<$lowestRatio?' warning':'')?>">Source: <?php echo number_format($chapter['stats']['frameLowSource'])?></div>
+								<div class="item clear-left<?php echo ($chapter['stats']['frameHighRatio']>$highestRatio?' warning':'')?>">Highest Ratio: <?php echo number_format($chapter['stats']['frameHighRatio'] * 100, 2)?>%</div>
+								<div class="item<?php echo ($chapter['stats']['frameHighRatio']>$highestRatio?' warning':'')?>">Target: <?php echo number_format($chapter['stats']['frameHigh'])?></div>
+								<div class="item<?php echo ($chapter['stats']['frameHighRatio']>$highestRatio?' warning':'')?>">Source: <?php echo number_format($chapter['stats']['frameHighSource'])?></div>
 								<!--
 								<div class="item clear-left">Frame Average: <?php echo number_format($chapter['stats']['frameAverage'], 2)?></div>
 								<div class="item">Source: <?php echo number_format($chapter['stats']['frameAverageSource'], 2)?></div>
-								<div class="item">Variance: <?php echo number_format($chapter['stats']['frameAverageVar'] * 100, 2)?>%</div>
+								<div class="item">% Ratio: <?php echo number_format($chapter['stats']['frameAverageRatio'] * 100, 2)?>%</div>
 								-->
 								<div class="item toggle-container"><a href="#" class="toggle">▼</a></div>
 							</div>
@@ -481,11 +481,11 @@ function collate_with_source($language){
 							<div class="frames" id="<?php echo $language?>-<?php echo $chapter['number']?>-frames" style="display:none">
 								<?php foreach($chapter['frames'] as $frameIndex=>$frame):?>
 									<div class="frame" id="<?php echo $language?>-frame-<?php echo $frame['id']?>">
-										<div class="container<?php echo ($frame['stats']['countVar']<$lowestVar||$frame['stats']['countVar']>$highestVar?' warning':'')?>">
+										<div class="container<?php echo ($frame['stats']['countRatio']<$lowestRatio||$frame['stats']['countRatio']>$highestRatio?' warning':'')?>">
 											<div class="heading">Frame: <?php echo $frame['id']?></div>
 											<div class="item clear-left">Char Count: <?php echo number_format($frame['stats']['count'])?></div>
 											<div class="item">Source: <?php echo number_format($frame['stats']['countSource'])?></div>
-											<div class="item">Variance: <?php echo number_format($frame['stats']['countVar'] * 100, 2)?>%</div>
+											<div class="item">% Ratio: <?php echo number_format($frame['stats']['countRatio'] * 100, 2)?>%</div>
 											<div class="item toggle-container"><a href="#" class="toggle">▼</a></div>
 										</div>
 
