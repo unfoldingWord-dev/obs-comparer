@@ -46,9 +46,11 @@ if($source && $target){
 
 	if($target == 'ALL'){
 		foreach($languages as $language) {
-			populate_data($language);
-			get_stats($language);
-			collate_with_source($language);
+			if($language != $source) {
+				populate_data($language);
+				get_stats($language);
+				collate_with_source($language);
+			}
 		}
 	}
 	else {
