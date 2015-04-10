@@ -7,8 +7,8 @@
  *
  * Once the user selects the languages, the obs-<language>.json file is read for that language and an array of stats on the length of
  * the whole collection of chapters, each chapter and each frame are computed. Then it determines how much the length of each
- * frame of the source and target language differ from each other, and how then how much each target language frame's source/target variance
- * differs from the median variance.
+ * frame of the source and target language differ from each other, and how then how much each target language frame's source/target ratio
+ * differs from the median ratio.
  */
 $source = (isset($_GET['s'])?$_GET['s']:'en');
 $target = (isset($_GET['t'])?$_GET['t']:'');
@@ -201,7 +201,7 @@ function collate_with_source($language){
 		else {
 			$sourceTargetVariance = 0;
 		}
-		
+
 		if(! isset($chapterLowVar) || $sourceTargetVariance < $chapterLowVar){
 			$chapterLow = $count;
 			$chapterLowSource = $srcData['stats']['chapterCount'][$index];
@@ -513,19 +513,31 @@ function collate_with_source($language){
 
 <div class="clear">
 	<hr/>
-	<div class="heading">Description:</div>
+	<div class="heading">Summary:</div>
 	<p>
 		This tool uses the json files located at <a href="https://api.unfoldingword.org/obs/txt/1/">https://api.unfoldingword.org/obs/txt/1/</a>
-		to determine if the text of a frame of a given target language falls within plus or minus 20% of the normal variance from the source language.
+		to determine if the text of a frame of a given target language falls within plus or minus 20% of the normal percentage ratio between the two languages.
 	</p>
-	The length of each frame's text of both source and target language will be added up, and the percentage of variance between source and target will be determined
-	by
+	<div class="heading">Description:</div>
+	<p>
+		The purpose of this tool is to determine if the text of a frame of OBS is outside the bounds of the normal ratio between the target language and
+		the source language (usually English). This goes by the understanding that the text of most languages will normally longer or shorter than a sentence or paragraph in English.
+	</p>
+	<p>
+		For example, in Chinese, something can be written in way fewer characters than English. "上帝祝福你。" is "God bless you." in Chinese, the Chinese being 6 characters,
+		the English being 14 characters, a ratio of 6:14, or a percentage ratio of 42.85%. (if you have it ignore punctuation and spaces, it is 5:11 or 45%). On the other hand,
+		French sentences are usually longer than a sentence with the same meaning in English, about a 110% percent ratio.
+	</p>
+	<p>
+		Once a source and target language is chosen, this tool will gather all the frames of both the source and target language, get the percentage ratio of each and then
+		select the percentage ratio that is the median of all frames. This is then used to determine the variance of a given frame is more or less than 20% of the target languages
+		ratio with the source language.
+	</p>
+	<div class="heading">Issues:</div>
 	<ul>
-		&lt;target length&gt; / &lt;source length&gt;
+		<li>Is selecting the median from the pool of all frame target-source ratios the best way to get the normal ratio of a language?</li>
+		<li>Is ±20% the best variance to use to say if a text's translation should be re-evaluated? Should this be different for text that is short, or text that is long?</li>
 	</ul>
-	The median variance is then found from all the frames. Each frame's source-target variance is then compared
-	to the median and if their variance is more or less than 20%, then that frame is highlighted in red. Lowest and highest
-	variance is also shown for each chapter, and highlighted in red if it is plus or minus 20%.
 </div>
 
 </body>
