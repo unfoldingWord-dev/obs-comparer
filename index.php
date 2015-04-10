@@ -402,13 +402,14 @@ function collate_with_source($language){
 			if($language == $source)
 				continue;
 
+			
 			$ratio = $info['stats']['frameMedianRatio'];
 			$lowestRatio = $ratio - .2;
 			$highestRatio = $ratio + .2;
 			?>
 			<div class="language" id="<?php echo $language?>">
 				<div class="container">
-					<div class="heading">Target: <?php echo $catalog[$language]['string'].' ('.$language.')'?></div>
+					<div class="heading">Target: <?php echo $catalog[$language]['string'].' ('.$language.')'?> <span style="padding-left:30px"><a href="https://door43.org/<?php echo $target?>/obs/" style="text-decoration:none;color:darkslategray;" target="_blank"><img src="images/external_link.png" height="12"></a></span></div>
 					<div class="item clear-left break">Overall Character Count: <?php echo number_format($info['stats']['count'])?> (Target), <?php echo number_format($info['stats']['countSource'])?> (Source)</div>
 					<div class="item">Ratio: <?php echo sprintf("%.2f",$info['stats']['countRatio'] * 100)?>%</div>
 					<div class="item clear-left"><span style="font-weight:bold;">Median Ratio: <?php echo sprintf("%.2f",$info['stats']['frameMedianRatio'] * 100)?>% (<?php echo number_format($info['stats']['frameMedian'])?>:<?php echo number_format($info['stats']['frameMedianSource'])?>)</span></div>
@@ -424,7 +425,7 @@ function collate_with_source($language){
 					<?php foreach($info['chapters'] as $chapterIndex=>$chapter):?>
 						<div class="chapter" id="<?php echo $language?>-chapter-<?php echo $chapter['number']?>">
 							<div class="container">
-								<div class="heading">Chapter: <?php echo $chapter['title']?></div>
+								<div class="heading">Chapter: <?php echo $chapter['title']?> <span style="padding-left:30px"><a href="https://door43.org/<?php echo $target?>/obs/<?php echo $chapter['number']?>" style="text-decoration:none;color:darkslategray;" target="_blank"><img src="images/external_link.png" height="12"></a></span></div>
 								<div class="item clear-left break">Chapter Character Count: <?php echo number_format($chapter['stats']['count'])?> (Target), <?php echo number_format($chapter['stats']['countSource'])?> (Source)</div>
 								<div class="item">Ratio: <?php echo sprintf("%.2f",$chapter['stats']['countRatio'] * 100)?>%</div>
 								<div class="item clear-left<?php echo ($chapter['stats']['frameLowRatio']<$lowestRatio?' warning':'')?>">Lowest Ratio: <?php echo sprintf("%.2f",$chapter['stats']['frameLowRatio'] * 100)?>% (<?php echo number_format($chapter['stats']['frameLow'])?>:<?php echo number_format($chapter['stats']['frameLowSource'])?>)</div>
@@ -438,7 +439,7 @@ function collate_with_source($language){
 								<?php foreach($chapter['frames'] as $frameIndex=>$frame):?>
 									<div class="frame" id="<?php echo $language?>-frame-<?php echo $frame['id']?>">
 										<div class="container<?php echo ($frame['stats']['countRatio']<$lowestRatio||$frame['stats']['countRatio']>$highestRatio?' warning':'')?>">
-											<div class="heading">Frame: <?php echo $frame['id']?></div>
+											<div class="heading">Frame: <?php echo $frame['id']?> <span style="padding-left:30px"><a href="https://door43.org/<?php echo $target?>/obs/<?php echo $chapter['number']?>" style="text-decoration:none;color:darkslategray;" target="_blank"><img src="images/external_link.png" height="12"></a></span></div>
 											<div class="item clear-left">Ratio: <?php echo sprintf("%.2f",$frame['stats']['countRatio'] * 100)?>% (<?php echo number_format($frame['stats']['count'])?>:<?php echo number_format($frame['stats']['countSource'])?>)</div>
 											<div class="item">Variance: <?php echo sprintf("%+.2f",($frame['stats']['countRatio'] - $ratio) * 100)?>%</div>
 											<div class="item toggle-container"><a href="#" class="toggle">▼</a></div>
@@ -477,7 +478,7 @@ function collate_with_source($language){
 	<div class="heading">Summary:</div>
 	<p>
 		This tool uses the json files located at <a href="https://api.unfoldingword.org/obs/txt/1/">https://api.unfoldingword.org/obs/txt/1/</a>
-		to determine if the text of a frame of a given target language falls within ±20% of the normal percentage ratio between the two languages.
+		to determine if the text of a frame of a given target language falls within ±20% of the normal percentage ratio between it and the source language.
 	</p>
 	<div class="heading">Description:</div>
 	<p>
