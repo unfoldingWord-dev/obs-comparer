@@ -10,11 +10,17 @@
  * frame of the source and target language differ from each other, and how then how much each target language frame's source/target ratio
  * differs from the median ratio.
  */
+
+require_once('vendor/autoload.php');
+
+use Stichoza\GoogleTranslate\TranslateClient;
+
 $source = (isset($_GET['s'])?$_GET['s']:'en');
 $target = (isset($_GET['t'])?$_GET['t']:'');
 $ignore_ws = (isset($_GET['ignore_ws'])?true:false);
 $ignore_punct = (isset($_GET['ignore_punct'])?true:false);
 $json = (isset($_GET['json'])?true:false);
+$translateWarnings = (isset($_GET['translate'])?true:false);
 
 $catalogJson = json_decode(file_get_contents('https://api.unfoldingword.org/obs/txt/1/obs-catalog.json'), true);
 $catalog = array();
@@ -31,7 +37,6 @@ if(! in_array($source, $languages)){
 if($target && ! in_array($target, $languages) && $target != 'ALL'){
 	$target = '';
 }
-
 
 $data = array();
 
@@ -324,6 +329,38 @@ function collate_with_source($language){
 			border-color: #eed3d7;
 		}
 	</style>
+
+
+	<script type="text/javascript">
+		$(document).ready(function(){
+			$('.language > .container > .toggle-container > a.toggle').click(function(){
+				$(this).parents('.container').first().siblings('.chapters').toggle();
+				if($(this).html() == "▲")
+					$(this).html("▼");
+				else
+					$(this).html("▲");
+				return false;
+			});
+
+			$('.chapter > .container >  .toggle-container > a.toggle').click(function(){
+				$(this).parents('.container').first().siblings('.frames').toggle();
+				if($(this).html() == "▲")
+					$(this).html("▼");
+				else
+					$(this).html("▲");
+				return false;
+			});
+
+			$('.frame > .container >  .toggle-container > a.toggle').click(function(){
+				$(this).parents('.container').first().siblings('.sentences').toggle();
+				if($(this).html() == "▲")
+					$(this).html("▼");
+				else
+					$(this).html("▲");
+				return false;
+			});
+		});
+	</script>
 </head>
 <body>
 
@@ -352,9 +389,14 @@ function collate_with_source($language){
 	<input type="checkbox" name="ignore_punct" value="1"<?php echo ($ignore_punct?' checked="checked"':'')?>> Ignore punctuation
 	<input type="checkbox" name="json" value="1"<?php echo ($json?' checked="checked"':'')?>> Output as JSON
 
+	<br/>
+
+	<input type="checkbox" name="translate" value="1"<?php echo ($translateWarnings?' checked="checked"':'')?>> Use Google Translate (only on high variations, takes time!)
 </form>
 
-<?php if(! empty($data) && $target && $source):?>
+<?php if(! empty($data) && $target && $source):
+	$tr = new TranslateClient($target, $source);
+	?>
 	<div class="clear">
 		<?php foreach($data as $language=>$info):
 			if($language == $source)
@@ -370,7 +412,7 @@ function collate_with_source($language){
 					<div class="item clear-left break">Overall Character Count: <?php echo number_format($info['stats']['count'])?> (Target), <?php echo number_format($info['stats']['countSource'])?> (Source)</div>
 					<div class="item">Ratio: <?php echo sprintf("%.2f",$info['stats']['countRatio'] * 100)?>%</div>
 					<div class="item clear-left"><span style="font-weight:bold;">Median Ratio: <?php echo sprintf("%.2f",$info['stats']['frameMedianRatio'] * 100)?>% (<?php echo number_format($info['stats']['frameMedian'])?>:<?php echo number_format($info['stats']['frameMedianSource'])?>)</span></div>
-					<div class="item clear-left"><span style="font-weight:normal;">Average Ratio: <?php echo sprintf("%+.2f",$info['stats']['frameAverageRatio'] * 100)?>%</span></div>
+					<div class="item clear-left"><span style="font-weight:normal;">Average Ratio: <?php echo sprintf("%.2f",$info['stats']['frameAverageRatio'] * 100)?>%</span></div>
 					<div class="item clear-left<?php echo ($info['stats']['frameLowRatio']<$lowestRatio?' warning':'')?>">Lowest Ratio: <?php echo sprintf("%.2f",$info['stats']['frameLowRatio'] * 100)?>% (<?php echo number_format($info['stats']['frameLow'])?>:<?php echo number_format($info['stats']['frameLowSource'])?>)</div>
 					<div class="item<?php echo ($info['stats']['frameLowRatio']<$lowestRatio?' warning':'')?>">Variance: <?php echo sprintf("%+.2f",($info['stats']['frameLowRatio'] - $ratio) * 100)?>%</div>
 					<div class="item clear-left<?php echo ($info['stats']['frameHighRatio']>$highestRatio?' warning':'')?>">Highest Ratio: <?php echo sprintf("%.2f",$info['stats']['frameHighRatio'] * 100)?>% (<?php echo number_format($info['stats']['frameHigh'])?>:<?php echo number_format($info['stats']['frameHighSource'])?>)</div>
@@ -403,7 +445,7 @@ function collate_with_source($language){
 										</div>
 
 										<div class="sentences clear-left" id="<?php echo $language?>-frame-<?php echo $frame['id']?>-sentences" style="display:none;">
-											<img src="<?php echo $frame['img']?>">
+											<img src="<?php echo $frame['img']?>" />
 											<p>
 												<?php echo $source?>:<br/>
 											<pre><?php echo $data[$source]['chapters'][$chapterIndex]['frames'][$frameIndex]['text']?></pre>
@@ -412,6 +454,12 @@ function collate_with_source($language){
 												<?php echo $language?>:<br/>
 											<pre><?php echo $frame['text']?></pre>
 											</p>
+											<?php if($translateWarnings && ($frame['stats']['countRatio']<$lowestRatio || $frame['stats']['countRatio']>$highestRatio)):?>
+											<p>
+												Google Translate:<br/>
+											<pre><?php echo $tr->translate($frame['text']);?></pre>
+											</p>
+											<?php endif;?>
 										</div>
 									</div>
 								<?php endforeach;?>
@@ -422,7 +470,7 @@ function collate_with_source($language){
 			</div>
 		<?php endforeach;?>
 	</div>
-<?php endif; ?>
+<?php else: ?>
 
 <div class="clear">
 	<hr/>
@@ -456,37 +504,7 @@ function collate_with_source($language){
 			Chinese has no spaces, and German often has very long phrases or words without spaces where English has spaces (e.g. Freundschaftsbezeigungen = demonstrations of friendship).</li>
 	</ul>
 </div>
+<?php endif; ?>
 
 </body>
 </html>
-
-<script type="text/javascript">
-	$(document).ready(function(){
-		$('.language > .container > .toggle-container > a.toggle').click(function(){
-			$(this).parents('.container').first().siblings('.chapters').toggle();
-			if($(this).html() == "▲")
-				$(this).html("▼");
-			else
-				$(this).html("▲");
-			return false;
-		});
-
-		$('.chapter > .container >  .toggle-container > a.toggle').click(function(){
-			$(this).parents('.container').first().siblings('.frames').toggle();
-			if($(this).html() == "▲")
-				$(this).html("▼");
-			else
-				$(this).html("▲");
-			return false;
-		});
-
-		$('.frame > .container >  .toggle-container > a.toggle').click(function(){
-			$(this).parents('.container').first().siblings('.sentences').toggle();
-			if($(this).html() == "▲")
-				$(this).html("▼");
-			else
-				$(this).html("▲");
-			return false;
-		});
-	});
-</script>
