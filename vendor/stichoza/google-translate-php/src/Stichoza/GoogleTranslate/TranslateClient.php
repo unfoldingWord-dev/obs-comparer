@@ -203,7 +203,7 @@ class TranslateClient {
 
         // Modify body to avoid json errors
         $bodyJson = preg_replace(array_keys($this->resultRegexes), array_values($this->resultRegexes), $body);
-        
+
         // Decode JSON data
         if (($bodyArray = json_decode($bodyJson, true)) === null) {
             throw new UnexpectedValueException('Data cannot be decoded or it\'s deeper than the recursion limit');

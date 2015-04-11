@@ -20,7 +20,7 @@ $target = (isset($_GET['t'])?$_GET['t']:'');
 $ignore_ws = (isset($_GET['ignore_ws'])?true:false);
 $ignore_punct = (isset($_GET['ignore_punct'])?true:false);
 $json = (isset($_GET['json'])?true:false);
-$translateWarnings = (isset($_GET['translate'])?true:false);
+$googleTranslate = (isset($_GET['translate'])?true:false);
 
 $catalogJson = json_decode(file_get_contents('https://api.unfoldingword.org/obs/txt/1/obs-catalog.json'), true);
 $catalog = array();
@@ -38,9 +38,13 @@ if($target && ! in_array($target, $languages) && $target != 'ALL'){
 	$target = '';
 }
 
+$googleTranslationMap = array();
+
 $data = array();
 
 if($source && $target){
+	load_google_translation_map();
+
 	populate_data($source);
 	get_stats($source);
 
@@ -59,6 +63,8 @@ if($source && $target){
 		collate_with_source($target);
 	}
 
+	save_google_translation_map();
+	
 	if($json){
 		echo json_encode($data);
 		exit;
@@ -101,7 +107,7 @@ function get_stats($language){
 
 			$length = mb_strlen($text, 'UTF-8');
 
-			$frame['text'] = $text;
+			$frame['transformedText'] = $text;
 			$frame['stats']['count'] = $length;
 			$chapter['stats']['frameCount'][]  = $length;
 			$langData['stats']['frameCount'][] = $length;
@@ -155,6 +161,8 @@ function calculate_average($arr) {
 function collate_with_source($language){
 	global $source;
 	global $data;
+	global $googleTranslate;
+	global $googleTranslationMap;
 
 	$srcData = $data[$source];
 	$tarData = &$data[$language];
@@ -254,11 +262,49 @@ function collate_with_source($language){
 		$chapter['stats']['frameHighSource'] = $frameHighSource;
 		$chapter['stats']['frameHighRatio'] = $frameHighRatio;
 
+
+		$tr = new TranslateClient($language, $source);
+		$ratio = $tarData['stats']['frameMedianRatio'];
+		$lowestRatio = $ratio - .2;
+		$highestRatio = $ratio + .2;
+
 		foreach($chapter['frames'] as $frameIndex=>&$frame){
 			$frame['stats']['countSource'] = $srcData['chapters'][$chapterIndex]['frames'][$frameIndex]['stats']['count'];
 			$frame['stats']['countRatio'] = $frame['stats']['count'] / $srcData['chapters'][$chapterIndex]['frames'][$frameIndex]['stats']['count'];
+
+			if($googleTranslate && $language != 'am' && ($frame['stats']['countRatio'] < $lowestRatio || $frame['stats']['countRatio'] > $highestRatio)) {
+				if(isset($googleTranslationMap[$language][$frame['text']])){
+					$frame['googleTranslate'] = $googleTranslationMap[$language][$frame['text']];
+				}
+				else {
+					$gt = $tr->translate($frame['text']);
+					$gt = preg_replace('/ ([\.,\?\!])/', '${1}', $gt); // for some reason translate() put spaces before punctuation
+					$gt = preg_replace('/^([^"]*)" /', '${1}"', $gt);
+					$frame['googleTranslate'] = $gt;
+					$googleTranslationMap[$language][$frame['text']] = $gt;
+				}
+			}
 		}
 	}
+}
+
+function load_google_translation_map(){
+	global $googleTranslationMap;
+
+	if(file_exists('google_translation_map.txt')){
+		$serializedData = file_get_contents('google_translation_map.txt');
+		$googleTranslationMap = unserialize($serializedData);
+	}
+	else {
+		$googleTranslationMap = array();
+	}
+}
+
+function save_google_translation_map(){
+	global $googleTranslationMap;
+
+	$serializedData = serialize($googleTranslationMap);
+	file_put_contents('google_translation_map.txt', $serializedData);
 }
 ?>
 
@@ -375,7 +421,7 @@ function collate_with_source($language){
 
 <h3>Language Comparison & Breakdown</h3>
 
-<?php if($target == "am" || $target == "ALL" && $translateWarnings):?>
+<?php if($target == "am" || $target == "ALL" && $googleTranslate):?>
 <div class="warning">
 	Google translate does not translate አማርኛ (am). Sorry. <?php if($target == "ALL"):?>Other languages will be translated.<?php endif;?>
 </div>
@@ -407,17 +453,14 @@ function collate_with_source($language){
 
 	<br/>
 
-	<input type="checkbox" name="translate" value="1"<?php echo ($translateWarnings?' checked="checked"':'')?>> Use Google Translate (only on large variations, takes time!)
+	<input type="checkbox" name="translate" value="1"<?php echo ($googleTranslate?' checked="checked"':'')?>> Use Google Translate (only on large variations, takes time!)
 </form>
 
-<?php if(! empty($data) && $target && $source):
-	$tr = new TranslateClient($target, $source);
-	?>
+<?php if(! empty($data) && $target && $source):?>
 	<div class="clear">
 		<?php foreach($data as $language=>$info):
 			if($language == $source)
 				continue;
-
 
 			$ratio = $info['stats']['frameMedianRatio'];
 			$lowestRatio = $ratio - .2;
@@ -428,7 +471,7 @@ function collate_with_source($language){
 					<div class="heading">Target: <?php echo $catalog[$language]['string'].' ('.$language.')'?> <a href="https://door43.org/<?php echo $target?>/obs/" style="text-decoration:none;font-size:.8em;font-weight:normal;" target="_blank"><i class="fa fa-external-link"></i></a></span></div>
 					<div class="item clear-left break">Overall Character Count: <?php echo number_format($info['stats']['count'])?> (Target), <?php echo number_format($info['stats']['countSource'])?> (Source)</div>
 					<div class="item">Ratio: <?php echo sprintf("%.2f",$info['stats']['countRatio'] * 100)?>%</div>
-					<div class="item clear-left"><span style="font-weight:bold;">Median Ratio: <?php echo sprintf("%.2f",$info['stats']['frameMedianRatio'] * 100)?>% <--- This ratio will be used to find frames with a variance > 20%</span></div>
+					<div class="item clear-left"><span style="font-weight:bold;">Median Ratio: <?php echo sprintf("%.2f",$info['stats']['frameMedianRatio'] * 100)?>% <== This ratio will be used to find frames with a variance > 20%</span></div>
 					<div class="item clear-left"><span style="font-weight:normal;">Average Ratio: <?php echo sprintf("%.2f",$info['stats']['frameAverageRatio'] * 100)?>%</span></div>
 					<div class="item clear-left<?php echo ($info['stats']['frameLowRatio']<$lowestRatio?' warning':'')?>">Lowest Ratio: <?php echo sprintf("%.2f",$info['stats']['frameLowRatio'] * 100)?>% (<?php echo number_format($info['stats']['frameLow'])?>:<?php echo number_format($info['stats']['frameLowSource'])?>)</div>
 					<div class="item<?php echo ($info['stats']['frameLowRatio']<$lowestRatio?' warning':'')?>">Variance: <?php echo sprintf("%+.2f",($info['stats']['frameLowRatio'] - $ratio) * 100)?>%</div>
@@ -465,16 +508,16 @@ function collate_with_source($language){
 											<img src="<?php echo $frame['img']?>" />
 											<p>
 												<?php echo $source?>:<br/>
-											<pre><?php echo $data[$source]['chapters'][$chapterIndex]['frames'][$frameIndex]['text']?></pre>
+											<pre><?php echo $data[$source]['chapters'][$chapterIndex]['frames'][$frameIndex]['transformedText']?></pre>
 											</p>
 											<p>
 												<?php echo $language?>:<br/>
-											<pre><?php echo $frame['text']?></pre>
+											<pre><?php echo $frame['transformedText']?></pre>
 											</p>
-											<?php if($translateWarnings && $language != 'am' && ($frame['stats']['countRatio']<$lowestRatio || $frame['stats']['countRatio']>$highestRatio)):?>
+											<?php if($frame['googleTranslate']):?>
 											<p>
 												Google Translate:<br/>
-											<pre><?php echo $tr->translate($frame['text']);?></pre>
+											<pre><?php echo $frame['googleTranslate'];?></pre>
 											</p>
 											<?php endif;?>
 										</div>
